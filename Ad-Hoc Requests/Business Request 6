@@ -1,0 +1,43 @@
+-- month wise---
+
+with cte as (select c.city_name as city ,
+        monthname(t.date) AS Month ,
+        t.city_id as city_id,
+        count(t.trip_id) AS actual_trip
+    from fact_trips t
+    inner join dim_city c
+    on t.city_id = c.city_id
+    group by  c.city_name,t.city_id,monthname(t.date))
+    
+    SELECT tc.city,
+    monthname(tar.month), 
+    tc.actual_trip, tar.total_target_trips,
+ROUND(100 * (tc.actual_trip - tar.total_target_trips) / tar.total_target_trips , 2) as Difference_pct,
+CASE 
+    WHEN tc.actual_trip > tar.total_target_trips THEN "Above Target"
+    ELSE "Below Target" END AS "Performance"
+FROM 
+cte tc INNER JOIN monthly_target_trips tar 
+ON tc.city_id = tar.city_id AND tc.month = monthname(tar.month) 
+;
+
+-- City Wise --
+select c.city_name as city,
+sum(s.total_passengers) as total_passengers, sum(s.repeat_passengers) as repeat_passengers,
+concat(ROUND(100*(sum(s.repeat_passengers)/sum(s.total_passengers)),2), '%') as city_repeat_passenger_rate from
+dim_city c join fact_passenger_summary s
+on c.city_id= s.city_id
+group by 1
+;
+select c.city_name as city,
+monthname(s.month) as month,
+sum(s.total_passengers) as total_passengers, sum(s.repeat_passengers) as repeat_passengers,
+concat(ROUND(100*(sum(s.repeat_passengers)/sum(s.total_passengers)),2), '%') as city_repeat_passenger_rate from
+dim_city c join fact_passenger_summary s
+on c.city_id= s.city_id
+group by 1,2
+order by 2  desc;
+
+
+
+
