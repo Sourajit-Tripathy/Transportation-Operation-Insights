@@ -1,4 +1,4 @@
--- % contribution for all trips by city -- 
+
 
 with cte (city, totalcount) as
  (select c.city_name , count(f.trip_id)
